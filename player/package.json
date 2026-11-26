@@ -1,0 +1,27 @@
+{
+  "name": "@orvyn/engine-player",
+  "version": "0.1.0",
+  "description": "Plays Orvyn Engine games (orvyn-game/1) in a canvas: the engine in WebAssembly, keyboard/mouse/touch, sound, TS/JS scripts.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/player.ts",
+      "default": "./dist/player.js"
+    }
+  },
+  "files": [
+    "src",
+    "dist"
+  ],
+  "scripts": {
+    "build": "cargo build --release --target wasm32-unknown-unknown && node scripts/copy-wasm.mjs && esbuild src/player.ts --bundle --format=esm --platform=browser --target=es2022 --outfile=dist/player.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "typescript": "^7.0.2"
+  },
+  "packageManager": "pnpm@12.6.0",
+  "repository": "https://github.com/OrvynOS/Engine"
+}

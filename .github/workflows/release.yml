@@ -1,0 +1,27 @@
+name: Release
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+# orvyn-engine-player.tar.gz: player.js and orvyn_engine.wasm, what orvyn-api, orvyn-studio and Vyn load.
+jobs:
+  player:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile && pnpm build
+        working-directory: player
+      - run: tar -czf orvyn-engine-player.tar.gz -C player/dist player.js orvyn_engine.wasm
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: orvyn-engine-player.tar.gz

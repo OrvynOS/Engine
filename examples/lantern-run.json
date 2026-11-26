@@ -1,0 +1,74 @@
+{
+  "format": "orvyn-game/1",
+  "title": "Lantern Run",
+  "description": "Carry the lantern across the rooftops: collect sparks, dodge the drifting embers, reach the door.",
+  "size": [480, 270],
+  "background": "#14161f",
+  "seed": 7,
+  "start": "roofs",
+  "vars": { "sparks": 0, "lives": 3 },
+  "touch": { "pad": "leftright", "buttons": ["space"] },
+  "prefabs": {
+    "spark": { "tags": ["spark"], "size": [10, 10], "shape": "circle", "color": "#ffd166", "sensor": true, "behaviours": [{ "type": "spin", "speed": 180 }] },
+    "ember": { "tags": ["ember"], "size": [12, 12], "shape": "circle", "color": "#ef476f", "body": "kinematic", "sensor": true, "behaviours": [{ "type": "patrol", "speed": 50, "range": 60, "vertical": true }] },
+    "door": { "tags": ["door"], "size": [20, 30], "color": "#e9c46a", "sensor": true, "body": "static", "text": { "value": "{sparks}/3", "size": 9, "color": "#14161f" } },
+    "puff": { "tags": ["fx"], "size": [6, 6], "shape": "circle", "color": "#ffd16688", "vel": [0, -40], "behaviours": [{ "type": "lifetime", "seconds": 0.4 }] }
+  },
+  "scenes": {
+    "roofs": {
+      "gravity": [0, 900],
+      "bounds": [0, 0, 960, 300],
+      "camera": { "follow": "player" },
+      "tilemap": {
+        "tile": [24, 24],
+        "origin": [0, 0],
+        "rows": [
+          "........................................",
+          "........................................",
+          "........................................",
+          "........................................",
+          "..............s..........e..............",
+          "...........#####.....s..........s.....D.",
+          "....s.................####.....#####....",
+          "######......s...e.......................",
+          "######....######......#######...########",
+          "######....######......#######...########"
+        ],
+        "legend": {
+          "#": { "color": "#3a3f58" },
+          "s": "spark",
+          "e": "ember",
+          "D": "door"
+        }
+      },
+      "entities": [
+        { "id": "hero", "tags": ["player"], "pos": [40, 120], "size": [16, 22], "color": "#8ecae6", "body": "dynamic", "behaviours": [{ "type": "platformer", "speed": 150, "jump": 380 }] },
+        { "id": "pit", "tags": ["pit"], "pos": [0, 290], "size": [960, 40], "sensor": true, "body": "static" },
+        { "id": "hud", "hud": true, "pos": [8, 6], "size": [200, 20], "text": { "value": "Sparks {sparks}   Lives {lives}", "size": 14, "color": "#f1faee", "align": "left" } }
+      ],
+      "rules": [
+        { "when": { "event": "collide", "a": "player", "b": "spark" }, "do": [
+          { "action": "add", "var": "sparks", "value": 1 },
+          { "action": "spawn", "prefab": "puff", "at": "b" },
+          { "action": "destroy", "target": "b" },
+          { "action": "sound", "sound": "chime" }
+        ] },
+        { "when": { "event": "collide", "a": "player", "b": "ember" }, "do": [
+          { "action": "add", "var": "lives", "value": -1 },
+          { "action": "shake", "strength": 5, "seconds": 0.25 },
+          { "action": "move", "target": "a", "to": [40, 120] },
+          { "action": "velocity", "target": "a", "vel": [0, 0] }
+        ] },
+        { "when": { "event": "collide", "a": "player", "b": "pit" }, "do": [
+          { "action": "add", "var": "lives", "value": -1 },
+          { "action": "move", "target": "a", "to": [40, 120] },
+          { "action": "velocity", "target": "a", "vel": [0, 0] }
+        ] },
+        { "when": { "event": "var", "name": "lives", "op": "<=", "value": 0 }, "do": [{ "action": "lose", "message": "The lantern went out." }] },
+        { "when": { "event": "collide", "a": "player", "b": "door" }, "if": [{ "var": "sparks", "op": ">=", "value": 3 }], "do": [{ "action": "win", "message": "Home with {sparks} sparks!" }] },
+        { "when": { "event": "key", "key": "r" }, "do": [{ "action": "restart" }] }
+      ]
+    }
+  },
+  "assets": { "sounds": { "chime": "chime.wav" } }
+}

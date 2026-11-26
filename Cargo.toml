@@ -1,0 +1,36 @@
+[package]
+name = "orvyn-engine"
+version = "0.1.0"
+description = "Orvyn Engine: 2D games as one JSON file (scenes, behaviours, no-code rules, Rhai scripts), deterministic, for the browser (WebAssembly) and servers."
+keywords = ["game-engine", "2d", "gamedev", "wasm", "no-code"]
+categories = ["game-engines", "wasm"]
+edition = "2024"
+license = "MIT"
+repository = "https://github.com/OrvynOS/Engine"
+
+[lib]
+name = "orvyn_engine"
+crate-type = ["rlib", "cdylib"]
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+# no_time: Rhai's clock would pull browser bindings into the wasm (scripts use the game's time()).
+# no_module, no_custom_syntax, only_i64: unused by games, and smaller downloads.
+rhai = { version = "1.27", default-features = false, features = ["std", "no_time", "no_module", "no_custom_syntax", "only_i64"] }
+# Playtest snapshots and contact sheets as PNG, with no browser (also in the WebAssembly build).
+tiny-skia = { version = "0.11", default-features = false, features = ["std", "simd", "png-format"] }
+
+[profile.release]
+lto = "thin"
+
+# Line tables only for this crate, no debug info for dependencies (a small target/).
+[profile.dev]
+debug = "line-tables-only"
+
+[profile.dev.package."*"]
+debug = false
+# The engine ships to browsers: small over fast.
+opt-level = "z"
+codegen-units = 1
+strip = true
